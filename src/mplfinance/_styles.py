@@ -264,6 +264,16 @@ def _valid_make_marketcolors_kwargs():
                             'Description' : 'True/False volume color depends on price change from previous day',
                             'Validator'   : lambda value: isinstance(value,bool) },
 
+        'volume_color_updown_dependancy'
+                        : { 'Default'     : None,
+                            'Description' : 'What the up/down color of the volume bars depends on: '
+                                            '"Open vs Close" (default), "Previous Close", or "Previous Volume". '
+                                            'Matching is case- and space-insensitive.',
+                            'Validator'   : lambda value: value is None or
+                                            ( isinstance(value,str) and
+                                              value.lower().replace(' ','') in
+                                              ('openvsclose','previousclose','previousvolume') ) },
+
 
         'inherit'       : { 'Default'     : False,
                             'Description' : 'inherit color from base_mpf_style for: edge,volume,ohlc,wick',
@@ -354,6 +364,9 @@ def make_marketcolors(**kwargs):
 
     if config['vcdopcod'] is not None:
         marketcolors.update({'vcdopcod':config['vcdopcod']})
+
+    if config['volume_color_updown_dependancy'] is not None:
+        marketcolors.update({'volume_color_updown_dependancy':config['volume_color_updown_dependancy']})
 
     return marketcolors
 

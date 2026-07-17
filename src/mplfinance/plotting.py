@@ -676,7 +676,26 @@ def plot( data, **kwargs ):
         mc = style['marketcolors']
         vup,vdown = mc['volume'].values()
         #-- print('vup,vdown=',vup,vdown)
-        vcolors = _updown_colors(vup, vdown, opens, closes, use_prev_close=style['marketcolors']['vcdopcod'])
+
+        # How the up/down color of each volume bar is decided:
+        #   'openvsclose'    : today's open vs close (default, same as the candles)
+        #   'previousclose'  : today's close vs the previous close  (legacy `vcdopcod=True`)
+        #   'previousvolume' : today's volume vs the previous volume
+        _vcdep = mc.get('volume_color_updown_dependancy', None)
+        if _vcdep is not None:
+            _vcmode = _vcdep.lower().replace(' ', '')
+        elif mc.get('vcdopcod', False):
+            _vcmode = 'previousclose'   # backward compatibility with legacy `vcdopcod`
+        else:
+            _vcmode = 'openvsclose'
+
+        def _volume_updown_colors(upcolor, downcolor):
+            if _vcmode == 'previousvolume':
+                return _updown_colors(upcolor, downcolor, volumes, volumes, use_prev_close=True)
+            return _updown_colors(upcolor, downcolor, opens, closes,
+                                  use_prev_close=(_vcmode == 'previousclose'))
+
+        vcolors = _volume_updown_colors(vup, vdown)
         #-- print('len(vcolors),len(opens),len(closes)=',len(vcolors),len(opens),len(closes))
         #-- print('vcolors=',vcolors)
 
@@ -687,7 +706,7 @@ def plot( data, **kwargs ):
         if mc['volume'] == mc['vcedge']:
             edgecolors = _adjust_color_brightness(vcolors,0.90)
         elif veup != vedown:
-            edgecolors = _updown_colors(veup, vedown, opens, closes, use_prev_close=style['marketcolors']['vcdopcod'])
+            edgecolors = _volume_updown_colors(veup, vedown)
         else: 
             edgecolors = veup 
 
