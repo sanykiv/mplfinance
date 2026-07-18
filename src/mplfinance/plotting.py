@@ -152,6 +152,12 @@ def _valid_plot_kwargs():
         'mco_faceonly'              : { 'Default'     : False, # If True: Override only the face of the candle
                                         'Description' : 'True/False marketcolor_overrides only apply to face of candle.',
                                         'Validator'   : lambda value: isinstance(value,bool) },
+
+        'volume_color_updown_dependency'
+                                    : { 'Default'     : None,
+                                        'Description' : 'How volume bar up/down colors are decided: '
+                                                        '"Open vs Close" (default), "Previous Close", or "Previous Volume".',
+                                        'Validator'   : _styles._valid_volume_color_updown_dependency },
  
         'no_xgaps'                  : { 'Default'     : True,  # None means follow default logic below:
                                         'Description' : 'deprecated',
@@ -681,7 +687,11 @@ def plot( data, **kwargs ):
         #   'openvsclose'    : today's open vs close (default, same as the candles)
         #   'previousclose'  : today's close vs the previous close  (legacy `vcdopcod=True`)
         #   'previousvolume' : today's volume vs the previous volume
-        _vcdep = mc.get('volume_color_updown_dependancy', None)
+        # A `volume_color_updown_dependency` kwarg passed directly to `plot()`
+        # takes precedence over the same setting in the style's marketcolors.
+        _vcdep = config['volume_color_updown_dependency']
+        if _vcdep is None:
+            _vcdep = mc.get('volume_color_updown_dependency', None)
         if _vcdep is not None:
             _vcmode = _vcdep.lower().replace(' ', '')
         elif mc.get('vcdopcod', False):
